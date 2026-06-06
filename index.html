@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinWise Advisor</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2233; --surface3: #0f1623;
+    --border: rgba(99,179,237,0.15); --accent: #63b3ed; --accent2: #68d391;
+    --accent3: #f6ad55; --text: #e2e8f0; --muted: #718096; --danger: #fc8181;
+    --success: #68d391; --warning: #f6ad55; --radius: 14px;
+    --font: 'Sora', system-ui, sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; overflow-x: hidden; }
+  .app { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 2rem; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; background: rgba(99,179,237,0.08); border: 1px solid var(--border); border-radius: 50px; padding: 8px 20px; margin-bottom: 1.2rem; font-size: 13px; color: var(--accent); letter-spacing: .05em; font-weight: 500; }
+  h1 { font-size: clamp(1.5rem,4vw,2.1rem); font-weight: 700; background: linear-gradient(135deg,#e2e8f0,#63b3ed 50%,#68d391); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; margin-bottom: .5rem; }
+  .subtitle { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 520px; margin: 0 auto; }
+
+  /* Stepper */
+  .stepper { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 2rem; }
+  .step { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .step.active { color: var(--accent); }
+  .step.done { color: var(--accent2); }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .step-line { width: 40px; height: 1px; background: var(--border); margin: 0 4px; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+
+  /* Form */
+  .form-section { margin-bottom: 1.25rem; }
+  .form-section-label { font-size: 11px; color: var(--accent3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; font-weight: 600; }
+  .form-grid { display: grid; gap: 12px; }
+  .form-grid.col2 { grid-template-columns: 1fr 1fr; }
+  .form-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .field input, .field select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; color: var(--text); font-family: var(--font); font-size: 13px; outline: none; transition: border-color .2s; width: 100%; }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field select option { background: #1a2233; }
+  .field .hint { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* Buttons */
+  .btn-primary { width: 100%; padding: 11px; border-radius: 10px; border: none; background: linear-gradient(135deg,#2b6cb0,#285e61); color: white; font-family: var(--font); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:hover { opacity: .88; }
+  .btn-sm { background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: var(--font); transition: all .2s; display: inline-flex; align-items: center; gap: 5px; }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Health Score */
+  .health-grid { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; margin-bottom: 1.25rem; }
+  .score-circle { width: 88px; height: 88px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 3px solid; }
+  .score-circle .num { font-size: 26px; font-weight: 700; line-height: 1; }
+  .score-circle .lbl { font-size: 10px; color: var(--muted); }
+  .score-details { display: flex; flex-direction: column; gap: 8px; }
+  .score-bar-row { display: flex; align-items: center; gap: 10px; }
+  .score-bar-label { font-size: 11px; color: var(--muted); width: 110px; flex-shrink: 0; }
+  .score-bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+  .score-bar-val { font-size: 11px; font-weight: 600; width: 32px; text-align: right; flex-shrink: 0; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .stat-box .val { font-size: 15px; font-weight: 600; color: var(--accent2); }
+  .stat-box .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .stat-box.warn .val { color: var(--warning); }
+  .stat-box.danger .val { color: var(--danger); }
+
+  /* Budget Chart */
+  .budget-section { margin-top: 1rem; }
+  .budget-bars { display: flex; flex-direction: column; gap: 8px; }
+  .budget-bar-row { display: flex; align-items: center; gap: 10px; }
+  .budget-bar-label { font-size: 12px; color: var(--muted); width: 80px; flex-shrink: 0; }
+  .budget-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; position: relative; }
+  .budget-bar-fill { height: 100%; border-radius: 4px; transition: width .8s ease; }
+  .budget-bar-val { font-size: 11px; font-weight: 600; width: 70px; text-align: right; flex-shrink: 0; }
+  .budget-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Topics */
+  .topics { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 1.5rem; }
+  .topic-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 50px; padding: 6px 14px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 6px; }
+  .topic-chip:hover,.topic-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(99,179,237,.08); }
+
+  /* Voice */
+  .voice-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+  .voice-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg,#63b3ed,#68d391,#f6ad55); opacity:0; transition:opacity .3s; }
+  .voice-card.listening::before { opacity:1; }
+  .mic-area { display:flex; flex-direction:column; align-items:center; gap:.875rem; margin-bottom:1.125rem; }
+  .mic-btn { width:62px; height:62px; border-radius:50%; border:2px solid var(--border); background:var(--surface2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:25px; color:var(--muted); transition:all .3s; }
+  .mic-btn:hover { border-color:var(--accent); color:var(--accent); transform:scale(1.05); }
+  .mic-btn.listening { border-color:var(--danger); color:var(--danger); animation:pulse-ring 1.5s infinite; }
+  @keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(252,129,129,.4)} 70%{box-shadow:0 0 0 18px rgba(252,129,129,0)} 100%{box-shadow:0 0 0 0 rgba(252,129,129,0)} }
+  .mic-label { font-size:13px; color:var(--muted); }
+  .stop-btn { display:none; padding:5px 14px; border-radius:50px; border:1px solid var(--danger); background:transparent; color:var(--danger); font-size:12px; cursor:pointer; font-family:var(--font); }
+  .transcript-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.875rem 1rem; min-height:50px; font-size:13px; line-height:1.6; color:var(--text); margin-bottom:.875rem; }
+  .t-placeholder { color:var(--muted); font-style:italic; }
+  .cursor { display:inline-block; width:2px; height:13px; background:var(--accent); vertical-align:middle; margin-left:2px; animation:blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .action-row { display:flex; gap:10px; }
+  .btn-ask { flex:0 0 auto; padding:9px 20px; border-radius:10px; border:none; background:linear-gradient(135deg,#2b6cb0,#285e61); color:white; font-family:var(--font); font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:7px; transition:opacity .2s; }
+  .btn-ask:hover { opacity:.88; }
+  .btn-ask:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-clear { padding:9px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-family:var(--font); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .2s; }
+  .btn-clear:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* Response */
+  .response-card { background:var(--surface); border:1px solid rgba(104,211,145,.2); border-radius:var(--radius); overflow:hidden; margin-bottom:1.5rem; animation:slideIn .4s ease; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .r-header { display:flex; align-items:center; gap:10px; padding:.875rem 1.125rem; border-bottom:1px solid rgba(104,211,145,.1); background:rgba(104,211,145,.05); }
+  .ai-avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#285e61,#2b6cb0); display:flex; align-items:center; justify-content:center; font-size:13px; color:white; flex-shrink:0; }
+  .r-meta .name { font-size:13px; font-weight:600; color:var(--accent2); }
+  .r-meta .tag { font-size:11px; color:var(--muted); }
+  .r-body { padding:1.125rem; font-size:14px; line-height:1.85; color:var(--text); }
+  .r-body ul { margin:8px 0 8px 16px; display:flex; flex-direction:column; gap:5px; }
+  .thinking { color:var(--muted); font-size:13px; display:flex; align-items:center; gap:8px; }
+  .dots span { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--muted); margin:0 2px; animation:bounce 1.2s infinite; }
+  .dots span:nth-child(2){animation-delay:.2s} .dots span:nth-child(3){animation-delay:.4s}
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+  .progress-bar { height:2px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:8px; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#63b3ed,#68d391); animation:prog 2s ease infinite; width:60%; }
+  @keyframes prog { 0%{transform:translateX(-100%)} 100%{transform:translateX(250%)} }
+  .tag-badge { font-size:10px; padding:3px 8px; border-radius:50px; background:rgba(99,179,237,.12); color:var(--accent); border:1px solid rgba(99,179,237,.2); white-space:nowrap; flex-shrink:0; }
+
+  /* Insight blocks inside response */
+  .insight-block { background:var(--surface2); border-radius:10px; padding:12px 14px; margin:12px 0; border-left:3px solid var(--accent); }
+  .insight-block.warning { border-left-color:var(--warning); }
+  .insight-block.success { border-left-color:var(--success); }
+  .insight-block.danger { border-left-color:var(--danger); }
+  .insight-title { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:5px; font-weight:600; }
+  .next-step { background:rgba(99,179,237,.07); border:1px solid rgba(99,179,237,.2); border-radius:10px; padding:12px 14px; margin-top:14px; }
+  .next-step-label { font-size:11px; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
+
+  /* Tip Cards */
+  .tip-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:1.5rem; }
+  .tip-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.875rem; cursor:pointer; transition:all .2s; }
+  .tip-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .tip-icon { font-size:20px; margin-bottom:6px; display:block; }
+  .tip-card h4 { font-size:12px; font-weight:600; color:var(--text); margin-bottom:3px; }
+  .tip-card p { font-size:11px; color:var(--muted); line-height:1.5; }
+
+  /* History */
+  .section-label { font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:.875rem; display:flex; align-items:center; gap:8px; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+  .history-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.75rem .875rem; margin-bottom:8px; cursor:pointer; transition:all .2s; display:flex; align-items:flex-start; gap:10px; }
+  .history-item:hover { border-color:var(--accent); }
+  .history-q { font-size:13px; color:var(--text); font-weight:500; margin-bottom:2px; }
+  .history-a { font-size:11px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .error-msg { background:rgba(252,129,129,.08); border:1px solid rgba(252,129,129,.2); border-radius:10px; padding:.75rem 1rem; font-size:13px; color:var(--danger); margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+
+  /* Action Highlight Chips */
+  .action-chips { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:1.2rem; }
+  .action-chip { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:50px; font-size:13px; font-weight:600; cursor:pointer; border:none; font-family:var(--font); letter-spacing:.03em; transition:all .25s; position:relative; overflow:hidden; }
+  .action-chip::before { content:''; position:absolute; inset:0; opacity:0; transition:opacity .25s; }
+  .action-chip:hover::before { opacity:1; }
+  .action-chip-loan { background:linear-gradient(135deg,#1a56db,#0e9f6e); color:#fff; box-shadow:0 4px 18px rgba(26,86,219,.35); }
+  .action-chip-loan:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(26,86,219,.45); }
+  .action-chip-cc { background:linear-gradient(135deg,#c026d3,#7c3aed); color:#fff; box-shadow:0 4px 18px rgba(192,38,211,.35); }
+  .action-chip-cc:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(124,58,237,.45); }
+  .chip-pulse { display:inline-block; width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.7); animation:chipPulse 1.8s infinite; }
+  @keyframes chipPulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.5);opacity:1} }
+
+  /* NBFC Info Icon */
+  .nbfc-trigger { display:inline-flex; align-items:center; gap:6px; background:rgba(246,173,85,.1); border:1px solid rgba(246,173,85,.35); border-radius:50px; padding:5px 13px; font-size:12px; color:var(--accent3); cursor:pointer; transition:all .2s; font-weight:500; }
+  .nbfc-trigger:hover { background:rgba(246,173,85,.18); border-color:var(--accent3); transform:scale(1.03); }
+  .nbfc-trigger i { font-size:14px; }
+
+  /* NBFC Modal Overlay */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:1000; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:18px; width:100%; max-width:680px; max-height:88vh; overflow-y:auto; padding:0; animation:modalSlide .3s ease; }
+  @keyframes modalSlide { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); z-index:2; }
+  .modal-title { font-size:15px; font-weight:700; color:var(--accent3); display:flex; align-items:center; gap:8px; }
+  .modal-close { background:var(--surface2); border:1px solid var(--border); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); font-size:16px; transition:all .2s; }
+  .modal-close:hover { border-color:var(--danger); color:var(--danger); }
+  .modal-body { padding:1.25rem 1.5rem; }
+
+  /* NBFC Tabs */
+  .nbfc-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.25rem; }
+  .nbfc-tab { padding:7px 16px; border-radius:50px; font-size:12px; font-weight:600; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; font-family:var(--font); }
+  .nbfc-tab.active { border-color:var(--accent3); color:var(--accent3); background:rgba(246,173,85,.1); }
+  .nbfc-panel { display:none; }
+  .nbfc-panel.active { display:block; animation:slideIn .3s ease; }
+
+  /* NBFC Card */
+  .nbfc-card { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:1.1rem 1.25rem; margin-bottom:1rem; }
+  .nbfc-card-header { display:flex; align-items:center; gap:10px; margin-bottom:.875rem; }
+  .nbfc-logo { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; flex-shrink:0; }
+  .nbfc-name { font-size:14px; font-weight:600; color:var(--text); }
+  .nbfc-type { font-size:11px; color:var(--muted); }
+  .nbfc-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:.875rem; }
+  .nbfc-meta-item { background:var(--surface3); border-radius:8px; padding:8px 10px; }
+  .nbfc-meta-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+  .nbfc-meta-val { font-size:13px; font-weight:600; color:var(--accent2); }
+  .nbfc-docs { margin-top:.75rem; }
+  .nbfc-docs-label { font-size:11px; color:var(--accent3); text-transform:uppercase; letter-spacing:.06em; font-weight:600; margin-bottom:6px; }
+  .nbfc-doc-list { display:flex; flex-direction:column; gap:5px; }
+  .nbfc-doc-item { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); }
+  .nbfc-doc-item i { color:var(--accent2); font-size:13px; }
+  .eligibility-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(104,211,145,.1); border:1px solid rgba(104,211,145,.25); border-radius:6px; padding:4px 10px; font-size:11px; color:var(--accent2); font-weight:600; margin-top:.5rem; }
+
+  /* Language Selector */
+  .lang-selector { display:flex; gap:6px; align-items:center; justify-content:center; margin-bottom:.75rem; }
+  .lang-btn { padding:4px 13px; border-radius:50px; font-size:11px; font-weight:600; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; transition:all .2s; font-family:var(--font); }
+  .lang-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(99,179,237,.1); }
+  .lang-label { font-size:11px; color:var(--muted); }
+
+  /* Apply Modal (Loan / CC) */
+  .apply-modal-header { background:linear-gradient(135deg,#1a3a6b,#0e4a38); padding:1.5rem; border-radius:14px 14px 0 0; }
+  .apply-modal-header.cc { background:linear-gradient(135deg,#4a0082,#2d0060); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo"><i class="ti ti-coin" aria-hidden="true"></i> FinWise Advisor</div>
+    <h1>Your Personal Finance Coach</h1>
+    <p class="subtitle">Share your financial picture once — get advice built around your actual numbers.</p>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper" id="stepper">
+    <div class="step active" id="step1"><div class="step-num">1</div><span>Profile</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="step2"><div class="step-num">2</div><span>Health Score</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="step3"><div class="step-num">3</div><span>Ask Anything</span></div>
+  </div>
+
+  <!-- PROFILE FORM -->
+  <div class="card" id="profileForm">
+    <div class="card-header">
+      <div class="card-title"><i class="ti ti-user-circle" aria-hidden="true"></i> Your Financial Profile</div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-label">Personal</div>
+      <div class="form-grid col2">
+        <div class="field"><label>Your Name</label><input type="text" id="pName" placeholder="e.g. Priya" /></div>
+        <div class="field">
+          <label>City</label>
+          <select id="pCity">
+            <option value="">Select city</option>
+            <option>Hyderabad</option><option>Bangalore</option><option>Mumbai</option>
+            <option>Delhi</option><option>Chennai</option><option>Pune</option>
+            <option>Kolkata</option><option>Ahmedabad</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-label">Income & Spending</div>
+      <div class="form-grid col3">
+        <div class="field"><label>Monthly Salary (₹)</label><input type="number" id="pSalary" placeholder="45000" /><div class="hint">Take-home / in-hand</div></div>
+        <div class="field"><label>Monthly Rent (₹)</label><input type="number" id="pRent" placeholder="10000" /></div>
+        <div class="field"><label>Monthly Expenses (₹)</label><input type="number" id="pExpenses" placeholder="25000" /><div class="hint">Food, travel, bills, etc.</div></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-label">Existing Finances</div>
+      <div class="form-grid col3">
+        <div class="field"><label>Current Savings (₹)</label><input type="number" id="pSavings" placeholder="15000" /></div>
+        <div class="field"><label>Total Loans (₹)</label><input type="number" id="pLoans" placeholder="200000" /><div class="hint">Student/personal loans</div></div>
+        <div class="field"><label>Loan EMI/month (₹)</label><input type="number" id="pEmi" placeholder="5000" /></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-label">Goals & Context</div>
+      <div class="form-grid col2">
+        <div class="field">
+          <label>Primary Financial Goal</label>
+          <select id="pGoal">
+            <option value="">Select goal</option>
+            <option>Build emergency fund</option>
+            <option>Pay off loans faster</option>
+            <option>Start investing</option>
+            <option>Save for a car</option>
+            <option>Save for a home down payment</option>
+            <option>General budgeting</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Job Type</label>
+          <select id="pJob">
+            <option value="">Select type</option>
+            <option>Salaried (private sector)</option>
+            <option>Salaried (government/PSU)</option>
+            <option>Freelance / Contract</option>
+            <option>Self-employed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid col2" style="margin-top:12px">
+        <div class="field">
+          <label>Has EPF / Provident Fund?</label>
+          <select id="pEpf">
+            <option value="">Not sure</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Any existing investments?</label>
+          <select id="pInvest">
+            <option value="none">None yet</option>
+            <option value="sip">SIP / Mutual Funds</option>
+            <option value="stocks">Stocks</option>
+            <option value="fd">FD / RD</option>
+            <option value="multiple">Multiple</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveProfile()">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i> Analyse My Finances
+    </button>
+  </div>
+
+  <!-- HEALTH SCORE CARD -->
+  <div class="card" id="healthCard" style="display:none">
+    <div class="card-header">
+      <div class="card-title"><i class="ti ti-heart-rate-monitor" aria-hidden="true"></i> Financial Health Score</div>
+      <button class="btn-sm" onclick="editProfile()"><i class="ti ti-edit" aria-hidden="true"></i> Edit Profile</button>
+    </div>
+
+    <div class="health-grid">
+      <div class="score-circle" id="scoreCircle">
+        <div class="num" id="scoreNum">--</div>
+        <div class="lbl">/ 100</div>
+      </div>
+      <div class="score-details">
+        <div class="score-bar-row">
+          <div class="score-bar-label">Savings rate</div>
+          <div class="score-bar-track"><div class="score-bar-fill" id="barSavings" style="width:0%;background:#68d391"></div></div>
+          <div class="score-bar-val" id="valSavings">--%</div>
+        </div>
+        <div class="score-bar-row">
+          <div class="score-bar-label">Emergency fund</div>
+          <div class="score-bar-track"><div class="score-bar-fill" id="barEmerg" style="width:0%;background:#63b3ed"></div></div>
+          <div class="score-bar-val" id="valEmerg">--%</div>
+        </div>
+        <div class="score-bar-row">
+          <div class="score-bar-label">Debt burden</div>
+          <div class="score-bar-track"><div class="score-bar-fill" id="barDebt" style="width:0%;background:#f6ad55"></div></div>
+          <div class="score-bar-val" id="valDebt">--%</div>
+        </div>
+        <div class="score-bar-row">
+          <div class="score-bar-label">Invest readiness</div>
+          <div class="score-bar-track"><div class="score-bar-fill" id="barInvest" style="width:0%;background:#b794f4"></div></div>
+          <div class="score-bar-val" id="valInvest">--%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="budget-section">
+      <div class="section-label">Monthly budget breakdown</div>
+      <div class="budget-bars" id="budgetBars"></div>
+      <div class="budget-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#fc8181"></div>Over budget</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f6ad55"></div>Tight</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#68d391"></div>On track</div>
+      </div>
+    </div>
+
+    <div id="quickInsights" style="margin-top:1.25rem"></div>
+  </div>
+
+  <!-- TOPICS -->
+  <div id="mainSection" style="display:none">
+
+    <!-- Action Highlight Chips -->
+    <div class="action-chips">
+      <button class="action-chip action-chip-loan" onclick="openApplyLoan()">
+        <span class="chip-pulse"></span>
+        <i class="ti ti-home-dollar"></i> APPLY LOAN
+      </button>
+      <button class="action-chip action-chip-cc" onclick="openApplyCC()">
+        <span class="chip-pulse" style="animation-delay:.4s"></span>
+        <i class="ti ti-credit-card"></i> APPLY CREDIT CARD
+      </button>
+    </div>
+
+    <div class="topics">
+      <span class="topic-chip" onclick="setTopic(this,'budgeting')"><i class="ti ti-wallet" aria-hidden="true"></i>Budgeting</span>
+      <span class="topic-chip" onclick="setTopic(this,'emergency fund')"><i class="ti ti-shield" aria-hidden="true"></i>Emergency Fund</span>
+      <span class="topic-chip" onclick="setTopic(this,'student loans')"><i class="ti ti-school" aria-hidden="true"></i>Student Loans</span>
+      <span class="topic-chip" onclick="setTopic(this,'investing')"><i class="ti ti-trending-up" aria-hidden="true"></i>Investing</span>
+      <span class="topic-chip" onclick="setTopic(this,'credit score')"><i class="ti ti-award" aria-hidden="true"></i>Credit Score</span>
+      <span class="topic-chip" onclick="setTopic(this,'taxes')"><i class="ti ti-file-invoice" aria-hidden="true"></i>Taxes</span>
+      <span class="topic-chip" onclick="setTopic(this,'retirement')"><i class="ti ti-beach" aria-hidden="true"></i>Retirement</span>
+      <span class="nbfc-trigger" onclick="openNbfcModal()"><i class="ti ti-building-bank"></i> NBFC Loan Details <i class="ti ti-info-circle"></i></span>
+    </div>
+
+    <!-- VOICE CARD -->
+    <div class="voice-card" id="voiceCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div style="font-size:12px;color:var(--muted);font-weight:500;">🎙 Voice Language</div>
+        <div class="lang-selector">
+          <button class="lang-btn active" id="langEn" onclick="setLang('en-IN')">English</button>
+          <button class="lang-btn" id="langHi" onclick="setLang('hi-IN')">हिंदी</button>
+          <button class="lang-btn" id="langTe" onclick="setLang('te-IN')">తెలుగు</button>
+        </div>
+      </div>
+      <div class="mic-area">
+        <button class="mic-btn" id="micBtn" onclick="toggleListening()">
+          <i class="ti ti-microphone" id="micIcon" aria-hidden="true"></i>
+        </button>
+        <span class="mic-label" id="micLabel">Tap to speak your question</span>
+        <button class="stop-btn" id="stopBtn" onclick="forceStop()">⏹ Stop Recording</button>
+      </div>
+      <div class="transcript-box">
+        <span class="t-placeholder" id="placeholder">Your spoken words will appear here...</span>
+        <span id="transcriptText" style="display:none"></span>
+      </div>
+      <div id="errorBox" style="display:none"></div>
+      <div class="action-row">
+        <button class="btn-clear" onclick="clearAll()"><i class="ti ti-trash" aria-hidden="true"></i> Clear</button>
+        <textarea id="typeInput" placeholder="Or type your question here..."
+          style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+                 padding:8px 10px;color:var(--text);font-family:var(--font);font-size:13px;resize:none;height:40px;line-height:1.6"
+          oninput="syncFromText(this.value)"></textarea>
+        <button class="btn-ask" id="askBtn" onclick="askQuestion()" disabled>
+          <i class="ti ti-send" aria-hidden="true"></i> Ask
+        </button>
+      </div>
+    </div>
+
+    <div id="responseArea"></div>
+
+    <div class="tip-cards">
+      <div class="tip-card" onclick="usePrompt('How should I create my first budget based on my salary?')">
+        <span class="tip-icon">💡</span><h4>Budget plan</h4><p>Tailored to my salary</p>
+      </div>
+      <div class="tip-card" onclick="usePrompt('Am I saving enough? How can I improve?')">
+        <span class="tip-icon">🎯</span><h4>Savings check</h4><p>Am I on track?</p>
+      </div>
+      <div class="tip-card" onclick="usePrompt('How do I pay off my loans faster while also saving?')">
+        <span class="tip-icon">⚖️</span><h4>Loans vs saving</h4><p>Best priority order</p>
+      </div>
+      <div class="tip-card" onclick="usePrompt('When should I start investing and how much?')">
+        <span class="tip-icon">📈</span><h4>Start investing</h4><p>Right time and amount</p>
+      </div>
+    </div>
+
+    <div class="history-section" id="historySection" style="display:none">
+      <div class="section-label">Recent questions</div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+</div>
+  <!-- NBFC Loan Info Modal -->
+  <div class="modal-overlay" id="nbfcModal" onclick="if(event.target===this)closeNbfcModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title"><i class="ti ti-building-bank"></i> NBFC Loan Details</div>
+        <button class="modal-close" onclick="closeNbfcModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="nbfc-tabs" id="nbfcTabs"></div>
+        <div id="nbfcPanels"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apply Loan Modal -->
+  <div class="modal-overlay" id="applyLoanModal" onclick="if(event.target===this)closeApplyModal('applyLoanModal')">
+    <div class="modal-box">
+      <div class="apply-modal-header">
+        <div style="font-size:22px;margin-bottom:6px">🏦</div>
+        <div style="font-size:17px;font-weight:700;color:#fff">Apply for a Loan</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">Personalised based on your financial profile</div>
+      </div>
+      <div class="modal-body" id="applyLoanBody">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0">Loading personalised loan options...</div>
+      </div>
+      <div style="padding:0 1.5rem 1.25rem;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn-sm" onclick="closeApplyModal('applyLoanModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apply Credit Card Modal -->
+  <div class="modal-overlay" id="applyCCModal" onclick="if(event.target===this)closeApplyModal('applyCCModal')">
+    <div class="modal-box">
+      <div class="apply-modal-header cc">
+        <div style="font-size:22px;margin-bottom:6px">💳</div>
+        <div style="font-size:17px;font-weight:700;color:#fff">Apply for a Credit Card</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">Recommended cards based on your profile & credit readiness</div>
+      </div>
+      <div class="modal-body" id="applyCCBody">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0">Loading personalised credit card options...</div>
+      </div>
+      <div style="padding:0 1.5rem 1.25rem;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn-sm" onclick="closeApplyModal('applyCCModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API_KEY = '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';
+
+  let recognition = null, isListening = false, currentText = '';
+  let historyArr = [], activeTopic = '', silenceTimer = null;
+  let profile = {}, profileSaved = false;
+  let selectedLang = 'en-IN';
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  /* ─── Language selector ─── */
+  function setLang(lang) {
+    selectedLang = lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const map = { 'en-IN':'langEn', 'hi-IN':'langHi', 'te-IN':'langTe' };
+    document.getElementById(map[lang]).classList.add('active');
+    if (isListening) { forceStop(); setTimeout(startListening, 200); }
+  }
+
+  /* ─── NBFC Data ─── */
+  const nbfcData = [
+    {
+      id: 'bajaj',
+      name: 'Bajaj Finserv',
+      type: 'Personal & Consumer Loans',
+      logo: '🟠', logoColor: '#f97316',
+      loanTypes: ['Personal Loan', 'EMI Finance', 'Home Loan'],
+      maxLimit: '₹40 Lakhs (Personal), ₹5 Crore (Home)',
+      eligibleLimit(sal) {
+        const personal = Math.min(4000000, sal * 24);
+        return `₹${(personal/100000).toFixed(1)}L personal (est.)`;
+      },
+      criteria: { minSalary: 25000, minAge: 21, maxAge: 58, minCibil: 700 },
+      rate: '11% – 35% p.a.',
+      tenure: '12 – 84 months',
+      processing: 'Up to 3.93% of loan amount',
+      docs: ['PAN Card & Aadhaar', 'Last 3-month salary slips', 'Bank statement (3 months)', 'Form 16 or ITR', 'Employment ID / Offer Letter', 'Passport-size photo'],
+      applyUrl: 'https://www.bajajfinserv.in/personal-loan'
+    },
+    {
+      id: 'hdfc',
+      name: 'HDFC Bank',
+      type: 'Personal & Home Loans',
+      logo: '🔵', logoColor: '#1d4ed8',
+      loanTypes: ['Personal Loan', 'Home Loan', 'Car Loan'],
+      maxLimit: '₹40 Lakhs (Personal), ₹10 Crore (Home)',
+      eligibleLimit(sal) {
+        const personal = Math.min(4000000, sal * 20);
+        return `₹${(personal/100000).toFixed(1)}L personal (est.)`;
+      },
+      criteria: { minSalary: 25000, minAge: 21, maxAge: 60, minCibil: 700 },
+      rate: '10.50% – 24% p.a.',
+      tenure: '12 – 60 months',
+      processing: '0.5% – 2.5% of loan amount',
+      docs: ['PAN Card & Aadhaar', 'Last 3-month salary slips', 'Bank statement (6 months)', 'Form 16 or IT Returns', 'Address proof (utility bill/rent agreement)', 'Employment proof (offer letter / appointment letter)'],
+      applyUrl: 'https://www.hdfcbank.com/personal/borrow/popular-loans/personal-loan'
+    },
+    {
+      id: 'muthoot',
+      name: 'Muthoot Finance',
+      type: 'Gold & Personal Loans',
+      logo: '🟡', logoColor: '#eab308',
+      loanTypes: ['Gold Loan', 'Personal Loan', 'Home Loan'],
+      maxLimit: '₹1 Crore (Gold), ₹15 Lakhs (Personal)',
+      eligibleLimit(sal) {
+        const personal = Math.min(1500000, sal * 18);
+        return `₹${(personal/100000).toFixed(1)}L personal (est.)`;
+      },
+      criteria: { minSalary: 15000, minAge: 18, maxAge: 70, minCibil: 650 },
+      rate: '12% – 28% p.a.',
+      tenure: '3 months – 60 months',
+      processing: '1% – 2% of loan amount',
+      docs: ['PAN Card & Aadhaar', 'Gold jewellery (for gold loan)', 'Latest salary slip or income proof', 'Bank statement (3 months)', 'Address proof', 'Passport photo (2 copies)'],
+      applyUrl: 'https://www.muthootfincorp.com/personal-loan'
+    },
+    {
+      id: 'tata',
+      name: 'Tata Capital',
+      type: 'Personal & Business Loans',
+      logo: '🔴', logoColor: '#dc2626',
+      loanTypes: ['Personal Loan', 'Business Loan', 'Education Loan'],
+      maxLimit: '₹35 Lakhs (Personal), ₹75 Lakhs (Business)',
+      eligibleLimit(sal) {
+        const personal = Math.min(3500000, sal * 22);
+        return `₹${(personal/100000).toFixed(1)}L personal (est.)`;
+      },
+      criteria: { minSalary: 20000, minAge: 22, maxAge: 58, minCibil: 700 },
+      rate: '10.99% – 35% p.a.',
+      tenure: '12 – 72 months',
+      processing: '2% – 2.75% of loan amount',
+      docs: ['PAN Card & Aadhaar (self-attested)', 'Last 3-month salary slips', 'Bank statement (3 months)', 'Form 16 / ITR (2 years)', 'Current address proof', 'Signed application form'],
+      applyUrl: 'https://www.tatacapital.com/personal-loan'
+    },
+    {
+      id: 'shriram',
+      name: 'Shriram Finance',
+      type: 'Vehicle & Personal Loans',
+      logo: '🟢', logoColor: '#16a34a',
+      loanTypes: ['Vehicle Loan', 'Personal Loan', 'Gold Loan'],
+      maxLimit: '₹10 Lakhs (Personal), ₹1 Crore (Vehicle)',
+      eligibleLimit(sal) {
+        const personal = Math.min(1000000, sal * 15);
+        return `₹${(personal/100000).toFixed(1)}L personal (est.)`;
+      },
+      criteria: { minSalary: 12000, minAge: 18, maxAge: 65, minCibil: 600 },
+      rate: '13% – 30% p.a.',
+      tenure: '12 – 60 months',
+      processing: '2% – 4% of loan amount',
+      docs: ['PAN Card & Aadhaar', 'Income proof or salary slip', 'Bank statement (3 months)', 'Residence proof', 'Vehicle RC (for vehicle loans)', 'Photos (2 copies)'],
+      applyUrl: 'https://www.shriramfinance.in/personal-loan'
+    }
+  ];
+
+  function openNbfcModal() {
+    // Build tabs
+    const tabs = nbfcData.map((n,i) =>
+      `<button class="nbfc-tab${i===0?' active':''}" onclick="switchNbfcTab('${n.id}')" id="tab-${n.id}">${n.name}</button>`
+    ).join('');
+    document.getElementById('nbfcTabs').innerHTML = tabs;
+
+    // Build panels
+    const panels = nbfcData.map((n,i) => {
+      const sal = profileSaved ? profile.salary : 0;
+      const eligible = sal > 0 ? n.eligibleLimit(sal) : 'Enter profile to see your limit';
+      const meetsMin = sal >= n.criteria.minSalary;
+      return `
+      <div class="nbfc-panel${i===0?' active':''}" id="panel-${n.id}">
+        <div class="nbfc-card">
+          <div class="nbfc-card-header">
+            <div class="nbfc-logo" style="background:${n.logoColor}22;color:${n.logoColor}">${n.logo}</div>
+            <div><div class="nbfc-name">${n.name}</div><div class="nbfc-type">${n.type}</div></div>
+          </div>
+          <div class="nbfc-meta">
+            <div class="nbfc-meta-item"><div class="nbfc-meta-label">Interest Rate</div><div class="nbfc-meta-val">${n.rate}</div></div>
+            <div class="nbfc-meta-item"><div class="nbfc-meta-label">Max Loan Limit</div><div class="nbfc-meta-val" style="font-size:11px">${n.maxLimit}</div></div>
+            <div class="nbfc-meta-item"><div class="nbfc-meta-label">Loan Tenure</div><div class="nbfc-meta-val">${n.tenure}</div></div>
+            <div class="nbfc-meta-item"><div class="nbfc-meta-label">Processing Fee</div><div class="nbfc-meta-val" style="font-size:11px">${n.processing}</div></div>
+          </div>
+          <div style="background:rgba(104,211,145,.07);border:1px solid rgba(104,211,145,.2);border-radius:10px;padding:10px 14px;margin:10px 0">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:4px">🎯 Your Eligible Loan Limit</div>
+            <div style="font-size:15px;font-weight:700;color:var(--accent2)">${eligible}</div>
+            ${sal > 0 ? `<div class="eligibility-badge"><i class="ti ti-${meetsMin?'check':'x'}"></i> ${meetsMin ? 'Eligible (salary ≥ ₹'+n.criteria.minSalary.toLocaleString()+'/mo)' : 'Min salary ₹'+n.criteria.minSalary.toLocaleString()+'/mo required'}</div>` : ''}
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px"><strong style="color:var(--accent3)">Loan Types:</strong> ${n.loanTypes.join(' · ')}</div>
+          <div style="font-size:12px;color:var(--muted)"><strong style="color:var(--accent3)">Criteria:</strong> Age ${n.criteria.minAge}-${n.criteria.maxAge} yrs · Salary ≥ ₹${n.criteria.minSalary.toLocaleString()} · CIBIL ≥ ${n.criteria.minCibil}</div>
+          <div class="nbfc-docs">
+            <div class="nbfc-docs-label"><i class="ti ti-files"></i> Required Documents</div>
+            <div class="nbfc-doc-list">
+              ${n.docs.map(d=>`<div class="nbfc-doc-item"><i class="ti ti-circle-check"></i><span>${d}</span></div>`).join('')}
+            </div>
+          </div>
+          <div style="margin-top:1rem">
+            <a href="${n.applyUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;background:linear-gradient(135deg,#2b6cb0,#285e61);color:#fff;font-size:13px;font-weight:600;text-decoration:none;transition:opacity .2s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'"><i class="ti ti-external-link"></i> Apply on ${n.name}'s Website</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('nbfcPanels').innerHTML = panels;
+
+    document.getElementById('nbfcModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function switchNbfcTab(id) {
+    document.querySelectorAll('.nbfc-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nbfc-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    document.getElementById('panel-'+id).classList.add('active');
+  }
+
+  function closeNbfcModal() {
+    document.getElementById('nbfcModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  /* ─── Apply Loan / CC Modals ─── */
+  function openApplyLoan() {
+    document.getElementById('applyLoanModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const body = document.getElementById('applyLoanBody');
+    if (!profileSaved) {
+      body.innerHTML = `<div class="insight-block warning"><div class="insight-title">Profile needed</div><div style="font-size:13px;color:var(--text)">Please complete your financial profile first — we'll then show personalised loan eligibility across all NBFCs.</div></div>`;
+      return;
+    }
+    const p = profile;
+    const eligible = nbfcData.filter(n => p.salary >= n.criteria.minSalary);
+    const ineligible = nbfcData.filter(n => p.salary < n.criteria.minSalary);
+    body.innerHTML = `
+      <div style="margin-bottom:1rem">
+        <div class="insight-block success" style="margin-bottom:8px">
+          <div class="insight-title">Based on your salary of ₹${p.salary.toLocaleString()}/month</div>
+          <div style="font-size:13px;color:var(--text)">You are eligible for personal loans from <strong>${eligible.length} lenders</strong>. Your estimated max EMI capacity is <strong>₹${Math.round(p.surplus*0.4).toLocaleString()}/month</strong> (40% of surplus).</div>
+        </div>
+        ${eligible.map(n=>`
+          <div class="nbfc-card" style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="nbfc-logo" style="background:${n.logoColor}22;color:${n.logoColor};width:30px;height:30px;font-size:13px">${n.logo}</div>
+                <div><div style="font-size:13px;font-weight:600;color:var(--text)">${n.name}</div><div style="font-size:11px;color:var(--muted)">${n.rate}</div></div>
+              </div>
+              <div style="font-size:14px;font-weight:700;color:var(--accent2)">${n.eligibleLimit(p.salary)}</div>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--muted)">Tenure: ${n.tenure} · Processing: ${n.processing}</div>
+            <a href="${n.applyUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:6px 14px;border-radius:6px;background:rgba(99,179,237,.12);border:1px solid rgba(99,179,237,.25);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none"><i class="ti ti-arrow-right"></i> Apply Now</a>
+          </div>`).join('')}
+        ${ineligible.length ? `<div style="font-size:11px;color:var(--muted);margin-top:8px">❌ Not yet eligible: ${ineligible.map(n=>n.name).join(', ')} (salary below their minimum)</div>` : ''}
+      </div>`;
+  }
+
+  function openApplyCC() {
+    document.getElementById('applyCCModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const body = document.getElementById('applyCCBody');
+    if (!profileSaved) {
+      body.innerHTML = `<div class="insight-block warning"><div class="insight-title">Profile needed</div><div style="font-size:13px;color:var(--text)">Complete your financial profile to see recommended credit cards based on your income and credit readiness.</div></div>`;
+      return;
+    }
+    const p = profile;
+    const cards = [
+      { name:'HDFC MoneyBack+', issuer:'HDFC Bank', limit:'₹50,000 – ₹3L', minSal:15000, perks:'5% cashback on online spends, 2% on groceries', fee:'₹500/year (waived on ₹50K spend)', url:'https://www.hdfcbank.com/personal/pay/cards/credit-cards/moneyback-credit-card', good: p.salary >= 25000 },
+      { name:'SBI SimplyCLICK', issuer:'SBI Card', limit:'₹25,000 – ₹2L', minSal:15000, perks:'10X rewards on Amazon/BookMyShow, 5X on online', fee:'₹499/year (waived on ₹1L spend)', url:'https://www.sbicard.com/en/personal/credit-cards/shopping/sbi-card-simply-click.page', good: p.salary >= 20000 },
+      { name:'Axis MY Zone', issuer:'Axis Bank', limit:'₹20,000 – ₹1.5L', minSal:12000, perks:'4 complimentary lounge access, 4X rewards online', fee:'₹500/year (waived on ₹2L spend)', url:'https://www.axisbank.com/retail/cards/credit-card/my-zone-credit-card', good: p.salary >= 15000 },
+      { name:'ICICI Amazon Pay', issuer:'ICICI Bank', limit:'₹25,000 – ₹2L', minSal:20000, perks:'5% on Amazon (Prime), 2% on all online spends, no annual fee', fee:'Zero annual fee', url:'https://www.icicibank.com/personal-banking/cards/consumer-cards/credit-card/amazon-pay-credit-card', good: p.salary >= 20000 },
+      { name:'Kotak 811 #DreamDifferent', issuer:'Kotak Mahindra', limit:'₹16,000 – ₹1L', minSal:0, perks:'2% cashback on all spends, lifetime free', fee:'Zero annual fee (lifetime free)', url:'https://www.kotak.com/en/personal-banking/cards/credit-card/811-dream-different-credit-card.html', good: true }
+    ];
+    const rec = cards.filter(c => p.salary >= c.minSal);
+    body.innerHTML = `
+      <div>
+        <div class="insight-block" style="margin-bottom:1rem">
+          <div class="insight-title">Recommended cards for your income (₹${p.salary.toLocaleString()}/mo)</div>
+          <div style="font-size:13px;color:var(--text)">Start with a no-fee or low-fee card. Pay the full bill every month to build your CIBIL score.</div>
+        </div>
+        ${rec.map(c=>`
+          <div class="nbfc-card" style="margin-bottom:10px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">${c.name}</div>
+                <div style="font-size:11px;color:var(--accent3)">${c.issuer}</div>
+              </div>
+              ${c.good?'<span style="font-size:10px;padding:3px 8px;border-radius:50px;background:rgba(104,211,145,.12);border:1px solid rgba(104,211,145,.25);color:var(--accent2)">✓ Recommended</span>':''}
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted)"><strong style="color:var(--text)">Perks:</strong> ${c.perks}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px"><strong style="color:var(--text)">Fee:</strong> ${c.fee} · <strong style="color:var(--text)">Limit:</strong> ${c.limit}</div>
+            <a href="${c.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:6px 14px;border-radius:6px;background:rgba(192,38,211,.1);border:1px solid rgba(192,38,211,.25);color:#d946ef;font-size:12px;font-weight:600;text-decoration:none"><i class="ti ti-arrow-right"></i> Apply Now</a>
+          </div>`).join('')}
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px 12px;background:var(--surface2);border-radius:8px">💡 Tip: Never use more than 30% of your credit limit. Always pay the <em>full</em> outstanding — not just the minimum — each month.</div>
+      </div>`;
+  }
+
+  function closeApplyModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+
+
+  function fmt(n) {
+    if (!n || n == 0) return '₹0';
+    if (n >= 100000) return '₹' + (n/100000).toFixed(1) + 'L';
+    if (n >= 1000)   return '₹' + Math.round(n/1000) + 'K';
+    return '₹' + n;
+  }
+
+  function pct(val, max) { return Math.min(100, Math.round((val / max) * 100)); }
+
+  function saveProfile() {
+    const salary   = parseInt(document.getElementById('pSalary').value)   || 0;
+    if (!salary) { alert('Please enter your monthly salary.'); return; }
+
+    profile = {
+      name:    document.getElementById('pName').value.trim(),
+      city:    document.getElementById('pCity').value,
+      salary,
+      rent:    parseInt(document.getElementById('pRent').value)     || 0,
+      expenses:parseInt(document.getElementById('pExpenses').value) || 0,
+      savings: parseInt(document.getElementById('pSavings').value)  || 0,
+      loans:   parseInt(document.getElementById('pLoans').value)    || 0,
+      emi:     parseInt(document.getElementById('pEmi').value)      || 0,
+      goal:    document.getElementById('pGoal').value,
+      job:     document.getElementById('pJob').value,
+      epf:     document.getElementById('pEpf').value,
+      invest:  document.getElementById('pInvest').value,
+    };
+
+    profile.totalSpend  = profile.rent + profile.expenses + profile.emi;
+    profile.surplus     = profile.salary - profile.totalSpend;
+    profile.savingsRate = profile.salary > 0 ? Math.round((profile.surplus / profile.salary) * 100) : 0;
+    profile.emergencyTarget = profile.expenses * 6;
+    profile.emergencyPct    = profile.emergencyTarget > 0 ? Math.min(100, Math.round((profile.savings / profile.emergencyTarget) * 100)) : 0;
+    profile.debtRatio       = profile.salary > 0 ? Math.round((profile.emi / profile.salary) * 100) : 0;
+
+    profileSaved = true;
+    renderHealthScore();
+    document.getElementById('profileForm').style.display  = 'none';
+    document.getElementById('healthCard').style.display   = 'block';
+    document.getElementById('mainSection').style.display  = 'block';
+    setStep(2);
+    setTimeout(() => setStep(3), 800);
+  }
+
+  function editProfile() {
+    document.getElementById('profileForm').style.display  = 'block';
+    document.getElementById('healthCard').style.display   = 'none';
+    document.getElementById('mainSection').style.display  = 'none';
+    setStep(1);
+  }
+
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('step'+i);
+      el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    });
+  }
+
+  function renderHealthScore() {
+    const p = profile;
+
+    /* Score calculation */
+    let score = 0;
+    const savingsScore  = Math.min(30, Math.round((p.savingsRate / 20) * 30));
+    const emergScore    = Math.min(25, Math.round((p.emergencyPct / 100) * 25));
+    const debtScore     = Math.min(25, p.debtRatio <= 10 ? 25 : p.debtRatio <= 20 ? 18 : p.debtRatio <= 35 ? 10 : 3);
+    const investScore   = p.invest === 'none' ? 8 : p.invest === 'sip' ? 20 : p.invest === 'multiple' ? 20 : 14;
+    score = savingsScore + emergScore + debtScore + investScore;
+
+    const circle = document.getElementById('scoreCircle');
+    const color  = score >= 70 ? '#68d391' : score >= 45 ? '#f6ad55' : '#fc8181';
+    circle.style.borderColor = color;
+    document.getElementById('scoreNum').style.color = color;
+    document.getElementById('scoreNum').textContent = score;
+
+    /* Bars */
+    setTimeout(() => {
+      document.getElementById('barSavings').style.width = pct(savingsScore,30) + '%';
+      document.getElementById('barEmerg').style.width   = pct(emergScore,25)   + '%';
+      document.getElementById('barDebt').style.width    = pct(debtScore,25)    + '%';
+      document.getElementById('barInvest').style.width  = pct(investScore,20)  + '%';
+    }, 200);
+
+    document.getElementById('valSavings').textContent = p.savingsRate + '%';
+    document.getElementById('valEmerg').textContent   = p.emergencyPct + '%';
+    document.getElementById('valDebt').textContent    = p.debtRatio + '%';
+    document.getElementById('valInvest').textContent  = investScore + '/20';
+
+    /* Stats */
+    const surplusClass = p.surplus >= 0 ? '' : ' danger';
+    const savClass     = p.savingsRate >= 20 ? '' : p.savingsRate >= 10 ? ' warn' : ' danger';
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-box${savClass}"><div class="val">${p.savingsRate}%</div><div class="lbl">Savings rate</div></div>
+      <div class="stat-box${surplusClass}"><div class="val">${fmt(p.surplus)}</div><div class="lbl">Monthly surplus</div></div>
+      <div class="stat-box"><div class="val">${fmt(p.emergencyTarget)}</div><div class="lbl">Emergency target</div></div>
+      <div class="stat-box"><div class="val">${p.emergencyPct}%</div><div class="lbl">Emergency built</div></div>`;
+
+    /* Budget bars */
+    const items = [
+      { label:'Rent',     val:p.rent,     ideal: p.salary * 0.30 },
+      { label:'Expenses', val:p.expenses, ideal: p.salary * 0.20 },
+      { label:'EMI',      val:p.emi,      ideal: p.salary * 0.15 },
+      { label:'Savings',  val:p.surplus > 0 ? p.surplus : 0, ideal: p.salary * 0.20 },
+    ];
+    document.getElementById('budgetBars').innerHTML = items.map(item => {
+      const barPct   = p.salary > 0 ? Math.min(100, Math.round((item.val / p.salary) * 100)) : 0;
+      const isOver   = item.val > item.ideal * 1.1;
+      const isTight  = item.val > item.ideal * 0.85 && !isOver;
+      const barColor = isOver ? '#fc8181' : isTight ? '#f6ad55' : '#68d391';
+      return `<div class="budget-bar-row">
+        <div class="budget-bar-label">${item.label}</div>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
+        <div class="budget-bar-val" style="color:${barColor}">${fmt(item.val)}<span style="font-size:9px;color:var(--muted)"> (${barPct}%)</span></div>
+      </div>`;
+    }).join('');
+
+    /* Quick insights */
+    const insights = [];
+    if (p.savingsRate < 10) insights.push({ type:'danger', title:'Low savings rate', msg:`You're saving ${p.savingsRate}% of income. Target 20% (₹${fmt(p.salary*0.2)}). Try cutting expenses by ₹${fmt(Math.round(p.salary*0.2 - p.surplus))} to hit the goal.` });
+    else if (p.savingsRate >= 20) insights.push({ type:'success', title:'Great savings rate', msg:`You're saving ${p.savingsRate}% — above the 20% target. Consider channelling the extra into investments.` });
+    if (p.emergencyPct < 50) insights.push({ type:'warning', title:'Emergency fund incomplete', msg:`You've built ${p.emergencyPct}% of your 6-month target (${fmt(p.emergencyTarget)}). Prioritise this before investing.` });
+    if (p.debtRatio > 30)    insights.push({ type:'danger',  title:'High debt burden', msg:`Your EMI is ${p.debtRatio}% of income — above the safe 30% limit. Focus on prepaying high-interest loans.` });
+    if (p.surplus < 0)       insights.push({ type:'danger',  title:'Spending exceeds income', msg:`Your expenses (${fmt(p.totalSpend)}) exceed your salary (${fmt(p.salary)}). You need to cut ₹${fmt(Math.abs(p.surplus))} immediately.` });
+
+    document.getElementById('quickInsights').innerHTML = insights.map(ins =>
+      `<div class="insight-block ${ins.type}" style="margin-bottom:8px">
+        <div class="insight-title">${ins.title}</div>
+        <div style="font-size:13px;color:var(--text)">${ins.msg}</div>
+      </div>`
+    ).join('');
+  }
+
+  function buildProfileContext() {
+    if (!profileSaved) return '';
+    const p = profile;
+    return `\n\n=== USER FINANCIAL PROFILE (use these exact numbers in every answer) ===
+Name: ${p.name || 'the user'}. City: ${p.city || 'India'}.
+Monthly salary: ₹${p.salary.toLocaleString()}.
+Monthly rent: ₹${p.rent.toLocaleString()}.
+Monthly living expenses: ₹${p.expenses.toLocaleString()}.
+Monthly loan EMI: ₹${p.emi.toLocaleString()}.
+Total monthly spend: ₹${p.totalSpend.toLocaleString()}.
+Monthly surplus (available to save/invest): ₹${p.surplus.toLocaleString()}.
+Current savings: ₹${p.savings.toLocaleString()}.
+Total loans outstanding: ₹${p.loans.toLocaleString()}.
+Savings rate: ${p.savingsRate}%.
+Debt-to-income ratio: ${p.debtRatio}%.
+Emergency fund built: ${p.emergencyPct}% of 6-month target (${fmt(p.emergencyTarget)}).
+Primary financial goal: ${p.goal || 'general financial health'}.
+Job type: ${p.job || 'salaried'}.
+EPF enrolled: ${p.epf || 'unknown'}.
+Current investments: ${p.invest || 'none'}.
+=== END PROFILE ===
+
+CRITICAL INSTRUCTIONS:
+1. Always reference the user's actual rupee amounts — never say "X% of your income" without also saying the ₹ amount.
+2. Give specific monthly action amounts (e.g. "Set aside ₹3,500/month for emergency fund").
+3. Prioritise their stated goal: "${p.goal}".
+4. If their surplus is negative or low, address that first before suggesting investments.
+5. Structure your response with: (a) Assessment, (b) Specific recommendations with ₹ amounts, (c) One concrete next step they can take today.`;
+  }
+
+  /* Topics */
+  function setTopic(el, topic) {
+    document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
+    if (activeTopic === topic) { activeTopic = ''; document.getElementById('responseArea').innerHTML = ''; return; }
+    el.classList.add('active'); activeTopic = topic;
+    showTopicBasics(topic);
+  }
+
+  const topicData = {
+    'budgeting':      { icon:'💼', title:'Budgeting basics', points:['<strong>50/30/20 rule:</strong> 50% needs, 30% wants, 20% savings & debt.','<strong>Pay yourself first:</strong> Auto-transfer savings the day salary arrives.','<strong>Track every rupee:</strong> Use apps like Walnut, Money Manager, or a spreadsheet.','<strong>Avoid lifestyle inflation:</strong> Resist upgrading everything when income rises.','<strong>Monthly review:</strong> 15 min every month-end to check actual vs planned spend.'], tip:'Set up an auto-transfer for 20% of your salary on payday.' },
+    'emergency fund': { icon:'🛡️', title:'Emergency fund basics', points:['<strong>Target:</strong> 3–6 months of monthly expenses (not salary).','<strong>Where:</strong> High-interest savings account or liquid mutual fund.','<strong>What counts:</strong> Job loss, medical bills, urgent travel — not sales or gadgets.','<strong>Priority:</strong> Build before starting SIPs or investing.','<strong>Rule:</strong> Replenish immediately if you ever use it.'], tip:'Open a zero-balance savings account labeled "Emergency Only" and seed it today.' },
+    'student loans':  { icon:'🎓', title:'Student loan basics', points:['<strong>Know your numbers:</strong> Balance, rate, and EMI for each loan.','<strong>Avalanche method:</strong> Minimums on all, extra cash to highest-rate loan first.','<strong>Never miss EMI:</strong> Damages CIBIL score and attracts penalties.','<strong>Prepay when possible:</strong> ₹500 extra/month saves significantly over time.','<strong>Tax benefit:</strong> Interest on education loans deductible under Section 80E.'], tip:'Log in today and note your exact loan interest rate.' },
+    'investing':      { icon:'📈', title:'Investing basics', points:['<strong>Index funds first:</strong> Nifty 50 funds outperform most active funds long-term.','<strong>SIP discipline:</strong> ₹500–₹2,000/month builds wealth and averages out volatility.','<strong>Time > timing:</strong> Starting at 22 vs 32 can mean 2–3x more at retirement.','<strong>ELSS:</strong> Saves tax under 80C while giving equity market returns.','<strong>5+ year horizon:</strong> Only invest money you will not need for 5 years.'], tip:'Open a Groww or Zerodha account and start a ₹500/month SIP in a Nifty 50 index fund.' },
+    'credit score':   { icon:'⭐', title:'Credit score basics', points:['<strong>Target:</strong> 750+ CIBIL score for best interest rates on future loans.','<strong>Pay full bill:</strong> Minimum payment traps you in expensive revolving interest.','<strong>30% rule:</strong> Keep credit card utilisation below 30% of your limit.','<strong>Limit applications:</strong> Each new credit card enquiry temporarily reduces score.','<strong>Free check:</strong> PaisaBazaar or BankBazaar — once a year, zero impact.'], tip:'Check your CIBIL score free at paisabazaar.com — takes 2 minutes.' },
+    'taxes':          { icon:'🧾', title:'Tax basics', points:['<strong>Old vs New:</strong> New regime has lower rates but no deductions — compare annually.','<strong>80C (₹1.5L):</strong> ELSS, PPF, EPF, life insurance all reduce taxable income.','<strong>HRA:</strong> Paying rent? Claim HRA exemption to save thousands.','<strong>File by July 31:</strong> Late filing means penalties and lost carry-forwards.','<strong>Form 16:</strong> Employer gives this — use it to file on incometax.gov.in.'], tip:'Ask your HR for Form 16 and file your ITR before July 31.' },
+    'retirement':     { icon:'🏖️', title:'Retirement basics', points:['<strong>Start now:</strong> ₹2,000/month at 22 beats ₹10,000/month at 42 due to compounding.','<strong>EPF first:</strong> Employer EPF contribution is free money — never withdraw early.','<strong>NPS extra:</strong> ₹50,000 extra deduction under 80CCD(1B) beyond the 80C limit.','<strong>PPF for safety:</strong> Government-backed, tax-free, 15-year lock-in.','<strong>25x target:</strong> ₹50K/month expenses = need ₹1.5 crore retirement corpus.'], tip:'Confirm your EPF is active via the EPFO portal or company HR today.' }
+  };
+
+  function showTopicBasics(topic) {
+    const c = topicData[topic];
+    if (!c) return;
+    const profileBanner = profileSaved
+      ? `<div style="background:rgba(99,179,237,.08);border:1px solid rgba(99,179,237,.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="ti ti-user-check" aria-hidden="true"></i> Personalized for ₹${profile.salary.toLocaleString()}/month — ask a question below for your specific numbers and amounts.</div>`
+      : '';
+    document.getElementById('responseArea').innerHTML = `
+      <div class="response-card">
+        <div class="r-header">
+          <div class="ai-avatar" style="font-size:16px">${c.icon}</div>
+          <div class="r-meta"><div class="name">${c.title}</div><div class="tag">Quick reference</div></div>
+          <span class="tag-badge">${topic}</span>
+        </div>
+        <div class="r-body">
+          ${profileBanner}
+          <ul style="display:flex;flex-direction:column;gap:8px;margin:0 0 14px;padding:0;list-style:none">
+            ${c.points.map(pt=>`<li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--accent2);flex-shrink:0;margin-top:3px">✓</span><span>${pt}</span></li>`).join('')}
+          </ul>
+          <div class="next-step"><div class="next-step-label">💡 Next step today</div>${c.tip}</div>
+        </div>
+        
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          ${getSuggestedQuestions(topic).map(q => `
+            <button onclick="usePrompt('${q}')" 
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:50px;
+                     padding:6px 14px;font-size:12px;color:var(--muted);cursor:pointer;
+                     font-family:var(--font);transition:all 0.2s"
+              onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+              ${q}
+            </button>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  /* Voice */
+  function syncFromText(val) {
+    currentText = val;
+    document.getElementById('askBtn').disabled = !val.trim();
+    document.getElementById('placeholder').style.display = val ? 'none' : 'inline';
+    document.getElementById('transcriptText').style.display = val ? 'inline' : 'none';
+    if (val) document.getElementById('transcriptText').textContent = val;
+  }
+
+  function updateTranscript(text, live) {
+    currentText = text;
+    const ph = document.getElementById('placeholder'), tx = document.getElementById('transcriptText');
+    if (text) { ph.style.display='none'; tx.style.display='inline'; tx.innerHTML=text+(live?'<span class="cursor"></span>':''); }
+    else { ph.style.display='inline'; tx.style.display='none'; }
+    document.getElementById('askBtn').disabled = !text.trim();
+    document.getElementById('typeInput').value = text;
+  }
+
+  function getSuggestedQuestions(topic) {
+    const questions = {
+      'budgeting': [
+        'How do I budget on an irregular salary?',
+        'What apps help with budgeting in India?',
+        'How do I stop overspending on food?'
+      ],
+      'emergency fund': [
+        'Where should I keep my emergency fund?',
+        'What counts as a real emergency?',
+        'How long will it take to build 6 months of savings?'
+      ],
+      'student loans': [
+        'Should I prepay my loan or invest?',
+        'How do I reduce my EMI burden?',
+        'Can I get a tax benefit on my education loan?'
+      ],
+      'investing': [
+        'How do I start a SIP with ₹500?',
+        'What is an index fund exactly?',
+        'Should I invest in stocks or mutual funds first?'
+      ],
+      'credit score': [
+        'How do I build credit from zero?',
+        'Does checking my score reduce it?',
+        'Which credit card is best for a fresher?'
+      ],
+      'taxes': [
+        'Old regime vs new regime — which is better for me?',
+        'How do I claim HRA if I pay rent to parents?',
+        'What is Form 16 and how do I use it?'
+      ],
+      'retirement': [
+        'How much should I save for retirement in my 20s?',
+        'Is EPF enough for retirement?',
+        'What is NPS and should I join it?'
+      ]
+    };
+    return questions[topic] || [];
+  }
+
+  function setListeningUI(on) {
+    isListening = on;
+    document.getElementById('micBtn').className        = 'mic-btn'+(on?' listening':'');
+    document.getElementById('micIcon').className       = on?'ti ti-microphone-2':'ti ti-microphone';
+    document.getElementById('micLabel').textContent    = on ? 'Listening... tap to stop' : 'Tap to speak your question';
+    document.getElementById('stopBtn').style.display   = on?'inline-block':'none';
+    document.getElementById('voiceCard').className     = 'voice-card'+(on?' listening':'');
+  }
+
+  function forceStop() {
+    clearTimeout(silenceTimer);
+    if (recognition) { try{recognition.abort();}catch(e){} recognition=null; }
+    setListeningUI(false);
+  }
+
+  function toggleListening() {
+    if (!SpeechRecognition) { showError('Voice recognition requires Chrome or Edge.'); return; }
+    isListening ? forceStop() : startListening();
+  }
+
+  function startListening() {
+    if (recognition) { try{recognition.abort();}catch(e){} }
+    recognition = new SpeechRecognition();
+    recognition.continuous = false; recognition.interimResults = true; recognition.lang = selectedLang;
+    let final = '';
+    recognition.onstart  = () => { setListeningUI(true); hideError(); silenceTimer=setTimeout(()=>{ if(isListening) forceStop(); },10000); };
+    recognition.onresult = (e) => {
+      clearTimeout(silenceTimer); let interim=''; final='';
+      for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) final+=e.results[i][0].transcript; else interim+=e.results[i][0].transcript; }
+      updateTranscript(final+interim,true);
+      silenceTimer=setTimeout(()=>{ if(isListening) forceStop(); },2000);
+    };
+    recognition.onend    = () => { clearTimeout(silenceTimer); setListeningUI(false); updateTranscript(final||currentText,false); recognition=null; };
+    recognition.onerror  = (e) => {
+      clearTimeout(silenceTimer); setListeningUI(false); recognition=null;
+      if(e.error==='no-speech') showError('No speech detected. Try again.');
+      else if(e.error==='not-allowed') showError('Microphone access denied. Allow mic in browser settings.');
+      else showError('Mic error: '+e.error);
+    };
+    try { recognition.start(); } catch(e) { setListeningUI(false); showError('Could not start microphone.'); }
+  }
+
+  function showError(msg) { const b=document.getElementById('errorBox'); b.style.display='flex'; b.innerHTML=`<i class="ti ti-alert-circle"></i> ${msg}`; b.className='error-msg'; }
+  function hideError()    { document.getElementById('errorBox').style.display='none'; }
+  function clearAll()     { currentText=''; updateTranscript('',false); document.getElementById('responseArea').innerHTML=''; document.getElementById('typeInput').value=''; hideError(); forceStop(); }
+  function usePrompt(text){ document.getElementById('typeInput').value=text; syncFromText(text); }
+
+  /* Ask Claude */
+  async function askQuestion() {
+    const q = currentText.trim();
+    if (!q) return;
+
+    const area      = document.getElementById('responseArea');
+    const topicHint = activeTopic ? ` The user is specifically asking about: ${activeTopic}.` : '';
+    const ctx       = buildProfileContext();
+    const pName     = profile.name || 'the user';
+
+    area.innerHTML = `<div class="response-card"><div class="r-header"><div class="ai-avatar"><i class="ti ti-robot" aria-hidden="true"></i></div><div class="r-meta"><div class="name">FinWise AI</div><div class="tag">Analysing ${profileSaved?pName+"'s finances":'your question'}...</div></div></div><div class="r-body"><div class="thinking"><div class="dots"><span></span><span></span><span></span></div> Building personalised advice...</div><div class="progress-bar"><div class="progress-fill"></div></div></div></div>`;
+    document.getElementById('askBtn').disabled = true;
+
+    const systemPrompt = `You are FinWise, an expert personal finance advisor specialising in helping recent graduates in India (age 21-26) build strong financial foundations. You are warm, direct, and always give advice calibrated to the user's exact financial situation.
+
+RESPONSE FORMAT — always follow this structure:
+1. **Assessment** (2-3 lines): Briefly assess their situation based on their numbers.
+2. **Your Personalised Plan** (bullet points with ₹ amounts): Give 3-5 specific, actionable steps using their actual salary, surplus, savings figures.
+3. **Next step today**: One single concrete action they can take within 24 hours.
+
+TONE: Encouraging but honest. If their finances need work, say so kindly but clearly. Never be vague — always give rupee amounts.${topicHint}${ctx}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1000, system:systemPrompt, messages:[{role:'user',content:q}] })
+      });
+      const data = await res.json();
+      if (data.error) { area.innerHTML=`<div class="error-msg"><i class="ti ti-alert-circle"></i> API Error: ${data.error.type} — ${data.error.message}</div>`; document.getElementById('askBtn').disabled=false; return; }
+
+      const answer = data.content?.[0]?.text || 'No response found.';
+
+      /* Format markdown → HTML */
+      let html = answer
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/^### (.+)$/gm,'<div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent3);font-weight:600;margin:14px 0 6px">$1</div>')
+        .replace(/^## (.+)$/gm,'<div style="font-size:14px;font-weight:600;color:var(--accent);margin:12px 0 6px">$1</div>')
+        .replace(/^- (.+)$/gm,'<li>$1</li>')
+        .replace(/(<li>.*<\/li>\n?)+/g,m=>`<ul style="margin:8px 0 8px 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:6px">${m.replace(/<li>/g,'<li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--accent2);flex-shrink:0">›</span><span>').replace(/<\/li>/g,'</span></li>')}</ul>`)
+        .replace(/\n\n/g,'</p><p style="margin-top:10px">')
+        .replace(/\n/g,'<br>');
+
+      /* Extract and highlight "next step" */
+      const nextMatch = html.match(/next step[^<:]*:?<\/strong>([^<]+(?:<br>[^<]+)*)/i);
+      if (nextMatch) {
+        html = html.replace(nextMatch[0], `<div class="next-step"><div class="next-step-label">💡 Next step today</div>${nextMatch[1].replace(/<br>/g,' ').trim()}</div>`);
+      }
+
+      const tag = activeTopic || detectTopic(q);
+      historyArr.unshift({q, a:answer, tag});
+      if (historyArr.length > 6) historyArr.pop();
+
+      area.innerHTML = `
+        <div class="response-card">
+          <div class="r-header">
+            <div class="ai-avatar"><i class="ti ti-robot" aria-hidden="true"></i></div>
+            <div class="r-meta">
+              <div class="name">FinWise AI</div>
+              <div class="tag">${profileSaved && profile.name ? 'Personalised for '+profile.name : 'Personal Finance Advisor'}</div>
+            </div>
+            ${tag?`<span class="tag-badge">${tag}</span>`:''}
+          </div>
+          <div class="r-body"><p>${html}</p></div>
+        </div>`;
+
+      renderHistory();
+    } catch(e) {
+      area.innerHTML=`<div class="error-msg"><i class="ti ti-alert-circle"></i> Connection error: ${e.message}</div>`;
+    }
+    document.getElementById('askBtn').disabled = !currentText.trim();
+  }
+
+  function detectTopic(text) {
+    const t = text.toLowerCase();
+    if (t.includes('budget')||t.includes('spend'))                   return 'budgeting';
+    if (t.includes('invest')||t.includes('sip')||t.includes('stock'))return 'investing';
+    if (t.includes('loan')||t.includes('debt')||t.includes('emi'))   return 'student loans';
+    if (t.includes('emergency')||t.includes('savings'))              return 'emergency fund';
+    if (t.includes('credit')||t.includes('cibil'))                   return 'credit score';
+    if (t.includes('tax')||t.includes('itr')||t.includes('80c'))     return 'taxes';
+    if (t.includes('retire')||t.includes('epf')||t.includes('nps'))  return 'retirement';
+    return '';
+  }
+
+  function renderHistory() {
+    if (!historyArr.length) return;
+    document.getElementById('historySection').style.display = 'block';
+    document.getElementById('historyList').innerHTML = historyArr.map((h,i)=>`
+      <div class="history-item" onclick="usePrompt(historyArr[${i}].q)">
+        <div style="flex:1"><div class="history-q">${h.q}</div><div class="history-a">${h.a.replace(/[*#]/g,'')}</div></div>
+        ${h.tag?`<span class="tag-badge">${h.tag}</span>`:''}
+      </div>`).join('');
+  }
+
+  document.getElementById('typeInput').addEventListener('keydown', e => {
+    if (e.key==='Enter'&&!e.shiftKey&&currentText.trim()){e.preventDefault();askQuestion();}
+  });
+</script>
+</body>
+</html>
