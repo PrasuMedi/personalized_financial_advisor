@@ -518,7 +518,6 @@
   </div>
 
 <script>
-  const API_KEY = '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';
 
   let recognition = null, isListening = false, currentText = '';
   let historyArr = [], activeTopic = '', silenceTimer = null;
@@ -1117,10 +1116,10 @@ RESPONSE FORMAT — always follow this structure:
 TONE: Encouraging but honest. If their finances need work, say so kindly but clearly. Never be vague — always give rupee amounts.${topicHint}${ctx}`;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ask', {
         method: 'POST',
-        headers: { 'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-        body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1000, system:systemPrompt, messages:[{role:'user',content:q}] })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, systemPrompt })
       });
       const data = await res.json();
       if (data.error) { area.innerHTML=`<div class="error-msg"><i class="ti ti-alert-circle"></i> API Error: ${data.error.type} — ${data.error.message}</div>`; document.getElementById('askBtn').disabled=false; return; }
