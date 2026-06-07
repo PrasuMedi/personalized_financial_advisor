@@ -6,6 +6,16 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 // This reads ANTHROPIC_API_KEY from Render's environment automatically
+app.get('/debug-key', (req, res) => {
+  const key = process.env.ANTHROPIC_API_KEY || '';
+  res.json({
+    exists: !!key,
+    length: key.length,
+    prefix: key.substring(0, 20),
+    suffix: key.slice(-4)
+  });
+});
+
 app.post('/api/ask', async (req, res) => {
   const { question, systemPrompt } = req.body;
 
