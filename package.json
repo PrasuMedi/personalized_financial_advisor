@@ -1,10 +1,18 @@
 {
   "name": "finwise-advisor",
   "version": "1.0.0",
+  "description": "AI-powered personal finance advisor with NBFC loan details and voice input",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "express": "^4.18.0"
-  }
+  },
+  "keywords": ["finance", "advisor", "ai", "nbfc"],
+  "license": "MIT"
 }
